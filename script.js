@@ -63,6 +63,7 @@
 // document.addEventListener("touchmove", rotateKnob, { passive: false });
 // document.addEventListener("touchend", handleEnd);
 
+//vibration
 document.addEventListener("DOMContentLoaded", () => {
   let knob = document.querySelector(".knob");
   let circle = document.getElementById("circle2");
