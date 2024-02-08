@@ -1,3 +1,46 @@
+// let knob = document.querySelector(".knob");
+// let circle = document.getElementById("circle2");
+// let pointer = document.querySelector(".pointer");
+// let text = document.querySelector(".text");
+
+// let isRotating = false;
+
+// document.addEventListener("mousedown", (e) => {
+//   if (e.target.closest(".knob")) {
+//     isRotating = true;
+//   }
+// });
+
+// const rotateKnob = (e) => {
+//   if (isRotating) {
+//     let knobX = knob.getBoundingClientRect().left + knob.clientWidth / 2;
+//     let knobY = knob.getBoundingClientRect().top + knob.clientHeight / 2;
+
+//     let deltaX = e.clientX - knobX;
+//     let deltaY = e.clientY - knobY;
+
+//     let angleRad = Math.atan2(deltaY, deltaX);
+//     let angleDeg = (angleRad * 180) / Math.PI;
+
+//     let rotationAngle = (angleDeg - 135 + 360) % 360;
+
+//     if (rotationAngle <= 270) {
+//       pointer.style.transform = `rotate(${rotationAngle - 45}deg)`;
+
+//       let progressPercent = rotationAngle / 270;
+
+//       circle.style.strokeDashoffset = `${880 - 660 * progressPercent}`;
+
+//       text.innerHTML = `${Math.round(progressPercent * 100)}`;
+//     }
+//   }
+// };
+
+// document.addEventListener("mousemove", rotateKnob);
+
+// document.addEventListener("mouseup", () => {
+//   isRotating = false;
+// });
 let knob = document.querySelector(".knob");
 let circle = document.getElementById("circle2");
 let pointer = document.querySelector(".pointer");
@@ -5,55 +48,60 @@ let text = document.querySelector(".text");
 
 let isRotating = false;
 
-// Function to handle the start of rotation
-function startRotation(e) {
-  // Prevent the default behavior to avoid issues on touch devices
-  e.preventDefault();
-  if (e.target.closest(".knob")) {
-    isRotating = true;
-  }
+// Function to start rotation
+function handleStart(e) {
+  e.preventDefault(); // Prevent default touch actions
+  isRotating = true;
 }
 
-// Updated rotateKnob function to handle touch events
+// Function to rotate the knob
 const rotateKnob = (e) => {
-  if (isRotating) {
-    let clientX = e.type.includes("mouse") ? e.clientX : e.touches[0].clientX;
-    let clientY = e.type.includes("mouse") ? e.clientY : e.touches[0].clientY;
+  if (!isRotating) return;
 
-    let knobX = knob.getBoundingClientRect().left + knob.clientWidth / 2;
-    let knobY = knob.getBoundingClientRect().top + knob.clientHeight / 2;
+  let clientX, clientY;
 
-    let deltaX = clientX - knobX;
-    let deltaY = clientY - knobY;
+  if (e.touches) {
+    clientX = e.touches[0].clientX;
+    clientY = e.touches[0].clientY;
+  } else {
+    clientX = e.clientX;
+    clientY = e.clientY;
+  }
 
-    let angleRad = Math.atan2(deltaY, deltaX);
-    let angleDeg = (angleRad * 180) / Math.PI;
+  let knobRect = knob.getBoundingClientRect();
+  let knobX = knobRect.left + knobRect.width / 2;
+  let knobY = knobRect.top + knobRect.height / 2;
 
-    let rotationAngle = (angleDeg - 135 + 360) % 360;
+  let deltaX = clientX - knobX;
+  let deltaY = clientY - knobY;
 
-    if (rotationAngle <= 270) {
-      pointer.style.transform = `rotate(${rotationAngle - 45}deg)`;
+  let angleRad = Math.atan2(deltaY, deltaX);
+  let angleDeg = (angleRad * 180) / Math.PI;
 
-      let progressPercent = rotationAngle / 270;
+  let rotationAngle = (angleDeg - 135 + 360) % 360;
 
-      circle.style.strokeDashoffset = `${880 - 660 * progressPercent}`;
+  if (rotationAngle <= 270) {
+    pointer.style.transform = `rotate(${rotationAngle - 45}deg)`;
 
-      text.innerHTML = `${Math.round(progressPercent * 100)}`;
-    }
+    let progressPercent = rotationAngle / 270;
+
+    // Assuming circle has stroke-dasharray set for progress visualization
+    circle.style.strokeDashoffset = `${880 - 660 * progressPercent}`;
+
+    text.innerHTML = `${Math.round(progressPercent * 100)}%`;
   }
 };
 
-// Function to handle the end of rotation
-function endRotation() {
+// Function to end rotation
+function handleEnd() {
   isRotating = false;
 }
 
-// Attach event listeners for both mouse and touch events
-document.addEventListener("mousedown", startRotation);
-document.addEventListener("touchstart", startRotation);
-
+// Adding both mouse and touch event listeners
+knob.addEventListener("mousedown", handleStart);
 document.addEventListener("mousemove", rotateKnob);
-document.addEventListener("touchmove", rotateKnob, { passive: false });
+document.addEventListener("mouseup", handleEnd);
 
-document.addEventListener("mouseup", endRotation);
-document.addEventListener("touchend", endRotation);
+knob.addEventListener("touchstart", handleStart);
+document.addEventListener("touchmove", rotateKnob, { passive: false });
+document.addEventListener("touchend", handleEnd);
