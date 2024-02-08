@@ -75,23 +75,38 @@ document.addEventListener("DOMContentLoaded", () => {
   let audioContext = new (window.AudioContext || window.webkitAudioContext)();
   let oscillator, gainNode;
 
+  // Assuming the rest of your code remains the same, modify the playSound function like this:
+
   function playSound() {
+    // Check if the audio context is in a suspended state. This might be the case on mobile devices.
     if (audioContext.state === "suspended") {
-      audioContext.resume();
+      // Try to resume the audio context in response to the user interaction
+      audioContext.resume().then(() => {
+        console.log("Audio Context resumed!");
+        triggerSound();
+      });
+    } else {
+      // If the audio context is already running, just play the sound
+      triggerSound();
     }
+  }
+
+  function triggerSound() {
     oscillator = audioContext.createOscillator();
     gainNode = audioContext.createGain();
 
     oscillator.connect(gainNode);
     gainNode.connect(audioContext.destination);
 
-    oscillator.type = "sine"; // You can experiment with 'square', 'sawtooth', 'triangle'
+    oscillator.type = "sine"; // Experiment with 'square', 'sawtooth', 'triangle'
     oscillator.frequency.setValueAtTime(440, audioContext.currentTime); // A4 note
     gainNode.gain.setValueAtTime(0.1, audioContext.currentTime); // Volume
 
     oscillator.start();
     oscillator.stop(audioContext.currentTime + 0.1); // Play sound for 100ms
   }
+
+  // The rest of the setup for handling start, move, and end events remains unchanged.
 
   function vibrate() {
     if (navigator.vibrate) {
