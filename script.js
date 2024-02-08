@@ -5,103 +5,156 @@
 
 // let isRotating = false;
 
-// document.addEventListener("mousedown", (e) => {
-//   if (e.target.closest(".knob")) {
-//     isRotating = true;
-//   }
-// });
+// // Function to start rotation
+// function handleStart(e) {
+//   e.preventDefault(); // Prevent default touch actions
+//   isRotating = true;
+// }
 
+// // Function to rotate the knob
 // const rotateKnob = (e) => {
-//   if (isRotating) {
-//     let knobX = knob.getBoundingClientRect().left + knob.clientWidth / 2;
-//     let knobY = knob.getBoundingClientRect().top + knob.clientHeight / 2;
+//   if (!isRotating) return;
 
-//     let deltaX = e.clientX - knobX;
-//     let deltaY = e.clientY - knobY;
+//   let clientX, clientY;
 
-//     let angleRad = Math.atan2(deltaY, deltaX);
-//     let angleDeg = (angleRad * 180) / Math.PI;
+//   if (e.touches) {
+//     clientX = e.touches[0].clientX;
+//     clientY = e.touches[0].clientY;
+//   } else {
+//     clientX = e.clientX;
+//     clientY = e.clientY;
+//   }
 
-//     let rotationAngle = (angleDeg - 135 + 360) % 360;
+//   let knobRect = knob.getBoundingClientRect();
+//   let knobX = knobRect.left + knobRect.width / 2;
+//   let knobY = knobRect.top + knobRect.height / 2;
 
-//     if (rotationAngle <= 270) {
-//       pointer.style.transform = `rotate(${rotationAngle - 45}deg)`;
+//   let deltaX = clientX - knobX;
+//   let deltaY = clientY - knobY;
 
-//       let progressPercent = rotationAngle / 270;
+//   let angleRad = Math.atan2(deltaY, deltaX);
+//   let angleDeg = (angleRad * 180) / Math.PI;
 
-//       circle.style.strokeDashoffset = `${880 - 660 * progressPercent}`;
+//   let rotationAngle = (angleDeg - 135 + 360) % 360;
 
-//       text.innerHTML = `${Math.round(progressPercent * 100)}`;
-//     }
+//   if (rotationAngle <= 270) {
+//     pointer.style.transform = `rotate(${rotationAngle - 45}deg)`;
+
+//     let progressPercent = rotationAngle / 270;
+
+//     // Assuming circle has stroke-dasharray set for progress visualization
+//     circle.style.strokeDashoffset = `${880 - 660 * progressPercent}`;
+
+//     text.innerHTML = `${Math.round(progressPercent * 100)}%`;
 //   }
 // };
 
-// document.addEventListener("mousemove", rotateKnob);
-
-// document.addEventListener("mouseup", () => {
+// // Function to end rotation
+// function handleEnd() {
 //   isRotating = false;
-// });
-let knob = document.querySelector(".knob");
-let circle = document.getElementById("circle2");
-let pointer = document.querySelector(".pointer");
-let text = document.querySelector(".text");
+// }
 
-let isRotating = false;
+// // Adding both mouse and touch event listeners
+// knob.addEventListener("mousedown", handleStart);
+// document.addEventListener("mousemove", rotateKnob);
+// document.addEventListener("mouseup", handleEnd);
 
-// Function to start rotation
-function handleStart(e) {
-  e.preventDefault(); // Prevent default touch actions
-  isRotating = true;
-}
+// knob.addEventListener("touchstart", handleStart);
+// document.addEventListener("touchmove", rotateKnob, { passive: false });
+// document.addEventListener("touchend", handleEnd);
 
-// Function to rotate the knob
-const rotateKnob = (e) => {
-  if (!isRotating) return;
+document.addEventListener("DOMContentLoaded", () => {
+  let knob = document.querySelector(".knob");
+  let circle = document.getElementById("circle2");
+  let pointer = document.querySelector(".pointer");
+  let text = document.querySelector(".text");
+  let isRotating = false;
+  let lastPercent = 0; // To track changes in percentage
 
-  let clientX, clientY;
+  // Prepare audio context for sound feedback
+  let audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  let oscillator, gainNode;
 
-  if (e.touches) {
-    clientX = e.touches[0].clientX;
-    clientY = e.touches[0].clientY;
-  } else {
-    clientX = e.clientX;
-    clientY = e.clientY;
+  function playSound() {
+    if (audioContext.state === "suspended") {
+      audioContext.resume();
+    }
+    oscillator = audioContext.createOscillator();
+    gainNode = audioContext.createGain();
+
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+
+    oscillator.type = "sine"; // You can experiment with 'square', 'sawtooth', 'triangle'
+    oscillator.frequency.setValueAtTime(440, audioContext.currentTime); // A4 note
+    gainNode.gain.setValueAtTime(0.1, audioContext.currentTime); // Volume
+
+    oscillator.start();
+    oscillator.stop(audioContext.currentTime + 0.1); // Play sound for 100ms
   }
 
-  let knobRect = knob.getBoundingClientRect();
-  let knobX = knobRect.left + knobRect.width / 2;
-  let knobY = knobRect.top + knobRect.height / 2;
-
-  let deltaX = clientX - knobX;
-  let deltaY = clientY - knobY;
-
-  let angleRad = Math.atan2(deltaY, deltaX);
-  let angleDeg = (angleRad * 180) / Math.PI;
-
-  let rotationAngle = (angleDeg - 135 + 360) % 360;
-
-  if (rotationAngle <= 270) {
-    pointer.style.transform = `rotate(${rotationAngle - 45}deg)`;
-
-    let progressPercent = rotationAngle / 270;
-
-    // Assuming circle has stroke-dasharray set for progress visualization
-    circle.style.strokeDashoffset = `${880 - 660 * progressPercent}`;
-
-    text.innerHTML = `${Math.round(progressPercent * 100)}%`;
+  function vibrate() {
+    if (navigator.vibrate) {
+      // Check if the Vibration API is supported
+      navigator.vibrate(50); // Vibrate for 50 milliseconds
+    }
   }
-};
 
-// Function to end rotation
-function handleEnd() {
-  isRotating = false;
-}
+  function handleStart(e) {
+    e.preventDefault(); // Prevent default touch actions
+    isRotating = true;
+  }
 
-// Adding both mouse and touch event listeners
-knob.addEventListener("mousedown", handleStart);
-document.addEventListener("mousemove", rotateKnob);
-document.addEventListener("mouseup", handleEnd);
+  const rotateKnob = (e) => {
+    if (!isRotating) return;
 
-knob.addEventListener("touchstart", handleStart);
-document.addEventListener("touchmove", rotateKnob, { passive: false });
-document.addEventListener("touchend", handleEnd);
+    let clientX, clientY;
+    if (e.touches) {
+      clientX = e.touches[0].clientX;
+      clientY = e.touches[0].clientY;
+    } else {
+      clientX = e.clientX;
+      clientY = e.clientY;
+    }
+
+    let knobRect = knob.getBoundingClientRect();
+    let knobX = knobRect.left + knobRect.width / 2;
+    let knobY = knobRect.top + knobRect.height / 2;
+
+    let deltaX = clientX - knobX;
+    let deltaY = clientY - knobY;
+
+    let angleRad = Math.atan2(deltaY, deltaX);
+    let angleDeg = (angleRad * 180) / Math.PI;
+
+    let rotationAngle = (angleDeg - 135 + 360) % 360;
+
+    if (rotationAngle <= 270) {
+      pointer.style.transform = `rotate(${rotationAngle - 45}deg)`;
+
+      let progressPercent = rotationAngle / 270;
+      let currentPercent = Math.round(progressPercent * 100);
+
+      if (currentPercent !== lastPercent) {
+        playSound();
+        vibrate();
+        lastPercent = currentPercent;
+      }
+
+      circle.style.strokeDashoffset = `${880 - 660 * progressPercent}`;
+      text.innerHTML = `${currentPercent}%`;
+    }
+  };
+
+  function handleEnd() {
+    isRotating = false;
+  }
+
+  knob.addEventListener("mousedown", handleStart);
+  document.addEventListener("mousemove", rotateKnob);
+  document.addEventListener("mouseup", handleEnd);
+
+  knob.addEventListener("touchstart", handleStart);
+  document.addEventListener("touchmove", rotateKnob, { passive: false });
+  document.addEventListener("touchend", handleEnd);
+});
