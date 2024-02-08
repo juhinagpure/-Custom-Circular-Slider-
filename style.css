@@ -34,6 +34,11 @@ body {
   align-items: center;
   justify-content: center;
 }
+.knob {
+  cursor: pointer;
+  touch-action: none; /* Prevents the browser's default touch actions */
+}
+
 .knob .rotator {
   width: 180px;
   height: 180px;

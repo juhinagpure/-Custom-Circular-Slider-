@@ -17,8 +17,8 @@ function startRotation(e) {
 // Updated rotateKnob function to handle touch events
 const rotateKnob = (e) => {
   if (isRotating) {
-    let clientX = e.clientX || e.touches[0].clientX;
-    let clientY = e.clientY || e.touches[0].clientY;
+    let clientX = e.type.includes("mouse") ? e.clientX : e.touches[0].clientX;
+    let clientY = e.type.includes("mouse") ? e.clientY : e.touches[0].clientY;
 
     let knobX = knob.getBoundingClientRect().left + knob.clientWidth / 2;
     let knobY = knob.getBoundingClientRect().top + knob.clientHeight / 2;
